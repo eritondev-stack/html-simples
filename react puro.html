@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React Drag and Drop Table</title>
+  <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+  <script src="https://unpkg.com/react-beautiful-dnd@13.1.0/dist/react-beautiful-dnd.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+    const { DragDropContext, Droppable, Draggable } = window.ReactBeautifulDnd;
+
+    // Sample data
+    const initialColumns = {
+      column1: {
+        id: 'column1',
+        title: 'Column 1',
+        items: ['Item 1', 'Item 2', 'Item 3']
+      },
+      column2: {
+        id: 'column2',
+        title: 'Column 2',
+        items: ['Item 4', 'Item 5']
+      }
+    };
+
+    const App = () => {
+      const [columns, setColumns] = useState(initialColumns);
+
+      const onDragEnd = (result) => {
+        const { source, destination } = result;
+
+        if (!destination) return;
+
+        const sourceColumn = columns[source.droppableId];
+        const destColumn = columns[destination.droppableId];
+        const sourceItems = Array.from(sourceColumn.items);
+        const destItems = Array.from(destColumn.items);
+
+        if (source.droppableId === destination.droppableId) {
+          const [removed] = sourceItems.splice(source.index, 1);
+          sourceItems.splice(destination.index, 0, removed);
+
+          setColumns({
+            ...columns,
+            [source.droppableId]: {
+              ...sourceColumn,
+              items: sourceItems
+            }
+          });
+        } else {
+          const [removed] = sourceItems.splice(source.index, 1);
+          destItems.splice(destination.index, 0, removed);
+
+          setColumns({
+            ...columns,
+            [source.droppableId]: {
+              ...sourceColumn,
+              items: sourceItems
+            },
+            [destination.droppableId]: {
+              ...destColumn,
+              items: destItems
+            }
+          });
+        }
+      };
+
+      return (
+        <DragDropContext onDragEnd={onDragEnd}>
+          {Object.entries(columns).map(([columnId, column]) => (
+            <div key={columnId} style={{ margin: '0 20px', display: 'inline-block', verticalAlign: 'top' }}>
+              <h2>{column.title}</h2>
+              <Droppable droppableId={columnId}>
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgrey', padding: '10px', width: '200px', minHeight: '300px' }}>
+                    {column.items.map((item, index) => (
+                      <Draggable key={item} draggableId={item} index={index}>
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            style={{
+                              userSelect: 'none',
+                              padding: '16px',
+                              margin: '0 0 8px 0',
+                              minHeight: '50px',
+                              backgroundColor: '#456C86',
+                              color: 'white',
+                              ...provided.draggableProps.style
+                            }}
+                          >
+                            {item}
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </div>
+          ))}
+        </DragDropContext>
+      );
+    };
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>

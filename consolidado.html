@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resizable Table Columns</title>
+    <style>
+        /* table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        } */
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            position: relative;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            cursor: col-resize;
+            user-select: none;
+            min-width: 15px;
+            background-color: aqua;
+        }
+        th.resizing {
+            opacity: 0.7;
+        }
+
+        th.drag-over {
+            background-color: #d1d1d1;
+        }
+    </style>
+</head>
+<body>
+    <script defer src="https://unpkg.com/alpinejs@3.2.4/dist/cdn.min.js"></script>    
+    <script src='https://cdn.tailwindcss.com'></script>
+    <div class="h-[400px] overflow-auto">
+
+<table class="w-[1000px]">
+    <thead class="sticky top-0 z-40">
+        <tr x-data="{
+            heardes: ['Name', 'Age', 'Country', 'Email']
+        }">
+
+            <th class="sticky left-0 z-50" draggable="true">Name<div class="resizer"></div></th>
+            <th class="" draggable="true">Age<div class="resizer"></div></th>
+            <th class="" draggable="true">Country<div class="resizer"></div></th>
+            <th class="" draggable="true">Email<div class="resizer"></div></th>
+        </tr>
+    </thead>
+    <tbody x-data="{ data: ['Red', 'Orange', 'Yellow', 'Red', 'Orange', 'Yellow', 'Red', 'Orange', 'Yellow', 'Red', 'Orange', 'Yellow', 'Red', 'Orange', 'Yellow'] }">
+        <template x-for="i in data">
+        <tr>
+            <td class="sticky left-0 z-30 bg-white font-bold">John Doe</td>
+            <td>30</td>
+            <td x-text="i">USA</td>
+            <td class="text-red-600">john@example.com</td>
+        </tr>
+    </template>
+    </tbody>
+</table>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.querySelector('table');
+        const ths = table.querySelectorAll('th');
+        let startX, startWidth, resizer;
+
+        ths.forEach(th => {
+            const div = th.querySelector('.resizer');
+            div.addEventListener('mousedown', function(event) {
+                startX = event.pageX;
+                startWidth = th.offsetWidth;
+                resizer = th;
+
+                th.setAttribute("draggable", false)
+                document.addEventListener('mousemove', resizeColumn);
+                document.addEventListener('mouseup', stopResize);
+                resizer.classList.add('resizing');
+            });
+        });
+
+        function resizeColumn(event) {
+            if (resizer) {
+                const newWidth = startWidth + (event.pageX - startX);
+                resizer.style.width = `${newWidth}px`;
+            }
+        }
+
+        function stopResize() {
+            document.removeEventListener('mousemove', resizeColumn);
+            document.removeEventListener('mouseup', stopResize);
+            if (resizer) {
+                resizer.classList.remove('resizing');
+                resizer = null;
+            }
+
+            ths.forEach(th => {
+            const div = th.querySelector('.resizer');
+                th.setAttribute("draggable", true)
+            });
+        }
+
+
+        let dragged;
+        let draggingColumnIndex;
+
+        document.querySelectorAll('th').forEach(th => {
+            th.addEventListener('dragstart', function(event) {
+                dragged = event.target;
+                draggingColumnIndex = [...dragged.parentNode.children].indexOf(dragged);
+                dragged.classList.add('dragging');
+                event.dataTransfer.effectAllowed = 'move';
+            });
+
+            th.addEventListener('dragover', function(event) {
+                event.preventDefault();
+                this.classList.add('drag-over');
+            });
+
+            th.addEventListener('dragleave', function() {
+                this.classList.remove('drag-over');
+            });
+
+            th.addEventListener('drop', function(event) {
+                event.preventDefault();
+                this.classList.remove('drag-over');
+                dragged.classList.remove('dragging');
+                
+                if (dragged !== this) {
+                    const targetColumnIndex = [...this.parentNode.children].indexOf(this);
+
+                    [...document.querySelectorAll('tr')].forEach(row => {
+                        const draggedCell = row.children[draggingColumnIndex];
+                        const targetCell = row.children[targetColumnIndex];
+                        if (draggingColumnIndex < targetColumnIndex) {
+                            row.insertBefore(draggedCell, targetCell.nextSibling);
+                        } else {
+                            row.insertBefore(draggedCell, targetCell);
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

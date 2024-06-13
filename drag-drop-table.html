@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draggable Table Columns</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            cursor: pointer;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: relative;
+        }
+        th.drag-over {
+            background-color: #d1d1d1;
+        }
+        /* th::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            right: 0;
+            cursor: col-resize;
+            background-color: transparent;
+        }
+        th.dragging {
+            opacity: 0.5;
+        } */
+    </style>
+</head>
+<body>
+
+<table id="myTable">
+    <thead>
+        <tr>
+            <th draggable="true">Name</th>
+            <th draggable="true">Age</th>
+            <th draggable="true">Country</th>
+            <th draggable="true">Email</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>John Doe</td>
+            <td>30</td>
+            <td>USA</td>
+            <td>john@example.com</td>
+        </tr>
+        <tr>
+            <td>Jane Smith</td>
+            <td>25</td>
+            <td>Canada</td>
+            <td>jane@example.com</td>
+        </tr>
+        <tr>
+            <td>Michael Brown</td>
+            <td>35</td>
+            <td>UK</td>
+            <td>michael@example.com</td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let dragged;
+        let draggingColumnIndex;
+
+        document.querySelectorAll('th').forEach(th => {
+            th.addEventListener('dragstart', function(event) {
+                dragged = event.target;
+                draggingColumnIndex = [...dragged.parentNode.children].indexOf(dragged);
+                dragged.classList.add('dragging');
+                event.dataTransfer.effectAllowed = 'move';
+            });
+
+            th.addEventListener('dragover', function(event) {
+                event.preventDefault();
+                this.classList.add('drag-over');
+            });
+
+            th.addEventListener('dragleave', function() {
+                this.classList.remove('drag-over');
+            });
+
+            th.addEventListener('drop', function(event) {
+                event.preventDefault();
+                this.classList.remove('drag-over');
+                dragged.classList.remove('dragging');
+                
+                if (dragged !== this) {
+                    const targetColumnIndex = [...this.parentNode.children].indexOf(this);
+
+                    [...document.querySelectorAll('tr')].forEach(row => {
+                        const draggedCell = row.children[draggingColumnIndex];
+                        const targetCell = row.children[targetColumnIndex];
+                        if (draggingColumnIndex < targetColumnIndex) {
+                            row.insertBefore(draggedCell, targetCell.nextSibling);
+                        } else {
+                            row.insertBefore(draggedCell, targetCell);
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

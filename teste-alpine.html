@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body class="flex justify-center items-center h-screen">
+    <script src='https://cdn.tailwindcss.com'></script>
+    <script defer src="https://unpkg.com/alpinejs-component@latest/dist/component.min.js"></script>  
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <div x-data="{
+    people: [
+      { name: 'John', age: '25', skills: ['JavaScript', 'CSS'] },
+      { name: 'Jane', age: '30', skills: ['Laravel', 'MySQL', 'jQuery'] },
+      { name: 'Eriton', age: '31', skills: ['Laravel', 'MySQL', 'Typescript'] }
+       ]
+       }">
+        <ul>
+            <template x-for="person in people">
+                <div class="text-red-600 bg-slate-200 my-2 px-2" x-text="person.name"></div>
+            </template>
+        </ul>
+    </div>
+</body>
+
+</html>
